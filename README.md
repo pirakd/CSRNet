@@ -1,5 +1,5 @@
 # CSRNet
-A pytorch CSRNET implementation for image crowd counting.  
+A pytorch [CSRNET](https://arxiv.org/abs/1802.10062) implementation for image crowd counting.  
 
 Current naming support [shanghaitech dataset](https://www.kaggle.com/datasets/tthien/shanghaitech-with-people-density-map).
 
