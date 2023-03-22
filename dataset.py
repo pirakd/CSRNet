@@ -29,7 +29,6 @@ class DensityDataSet(Dataset):
             image = image.convert('RGB')
         density_map_name = '{}.npy'.format(self.images_names[idx].split('.')[0])
         density_map = np.load(path.join(self.densities_dir, density_map_name))
-        density_map = np.load(path.join(self.densities_dir, density_map_name))
         image = ToTensor()(image)
         density_map = ToTensor()(density_map)
         if self.general_transform:
