@@ -12,3 +12,7 @@ In order to run:
 3. preprocess density maps by running [prepare_dataset.py](prepare_dataset.py)
 
 4. run [train.py](train.py) script
+
+5. evaluate your model with [eval.py](eval.py)
+
+With the example preset you can train a sub-70 MAE on ShanghaiTech_A_test.
