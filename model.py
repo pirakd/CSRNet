@@ -23,7 +23,7 @@ def gen_layers(layers, in_channels=512, dilation_rate=2):
 class CSRNet(nn.Module):
     def __init__(self, dilation_rate=2):
         super(CSRNet, self).__init__()
-        pretrained_model = vgg16(pretrained=True)
+        pretrained_model = vgg16(weights='IMAGENET1K_V1')
         self.frontend = pretrained_model.features[:23] # as in the paper
         self.backend = gen_layers([512, 512, 512, 256, 128, 64], 512, dilation_rate)
         self.backend.apply(self.weights_init)
