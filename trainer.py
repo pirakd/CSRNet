@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from utils import names
 import copy
-
+from os import path
 
 class Trainer:
     def __init__(self, max_num_epochs, loss_func, optimizer, eval_interval, device, verbosity=3,
@@ -15,7 +15,7 @@ class Trainer:
         self.verbosity = verbosity
         self.early_stop = early_stop
 
-    def train(self, train_loader, val_loader, model, max_evals_no_improvement=8):
+    def train(self, train_loader, val_loader, model, max_evals_no_improvement=8 , output_file_path=''):
         best_model = None
         self.losses = {'train': [], 'validation': []}
         self.metrics = {'train': [], 'validation': []}
@@ -33,7 +33,7 @@ class Trainer:
             # self.metrics['train'].append(epoch_hits/n_samples_per_epoch)
             print('epoch {}, train_loss: {:.2e}'.format(epoch, train_loss))
 
-            if (np.mod(epoch, self.eval_interval) == 0 and epoch) or (epoch+1 == self.max_num_epochs):
+            if (np.mod(epoch+1, self.eval_interval) == 0) or (epoch+1 == self.max_num_epochs):
                 val_loss, mae, mse = self.eval(model, val_loader)
 
                 self.losses['validation'].append(val_loss)
@@ -42,8 +42,14 @@ class Trainer:
 
                 if best_val_loss > val_loss:
                     no_improvement_counter = 0
-                    best_epoch, best_train_loss, best_val_loss, best_mae, best_mse = epoch, train_loss, val_loss, mae, mse
+                    best_epoch, best_train_loss, best_val_loss, best_mae, best_mse = epoch, train_loss, val_loss, mae,\
+                                                                                     mse
                     best_model = copy.deepcopy(model)
+                    state = {'epoch': epoch + 1, 'state_dict': best_model.state_dict(),
+                             'optimizer': self.optimizer.state_dict() }
+                    torch.save(state,
+                               path.join(output_file_path, names.model_file))  # save checkpoints
+
                 else:
                     no_improvement_counter += 1
 
@@ -64,20 +70,20 @@ class Trainer:
         for i, data in enumerate(train_loader):
             images = torch.squeeze(data[names.images])
             density_maps = torch.squeeze(data[names.densities], dim=0)
-            n_samples += 1
+            n_samples += images.shape[0]
             density_pred = model(images)
             loss = self.loss_func(density_pred, density_maps)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
             epoch_loss += loss.item()
-            print('sample {}, loss: {}'.format(i, loss))
         epoch_loss /= n_samples
         return epoch_loss
 
     def eval(self, model, val_loader):
         mae, mse = 0, 0
         n_samples = 0
+        n_images = 0
         epoch_loss = 0
         model.train()
         model.eval()
@@ -85,7 +91,8 @@ class Trainer:
             for i, data in enumerate(val_loader):
                 images = torch.squeeze(data[names.images])
                 density_maps = torch.squeeze(data[names.densities], dim=0)
-                n_samples += 1
+                n_samples += images.shape[0]
+                n_images += 1
                 density_pred = model(images)
                 loss = self.loss_func(density_pred, density_maps)
                 diff = torch.abs(torch.sum(density_pred) - torch.sum(density_maps))
@@ -93,7 +100,7 @@ class Trainer:
                 mse += torch.sum(diff**2)
                 epoch_loss += loss.item()
 
-        mae /= n_samples
-        mse = torch.sqrt(mse / n_samples)
+        mae /= n_images
+        mse = torch.sqrt(mse / images)
         epoch_loss /= n_samples
         return epoch_loss, mae, mse
