@@ -101,6 +101,6 @@ class Trainer:
                 epoch_loss += loss.item()
 
         mae /= n_images
-        mse = torch.sqrt(mse / images)
+        mse = torch.sqrt(mse / n_images)
         epoch_loss /= n_samples
         return epoch_loss, mae, mse
