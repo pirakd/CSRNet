@@ -2,7 +2,7 @@ import numpy as np
 import scipy
 import cv2
 
-# much faster version of https://github.com/davideverona/deep-crowd-counting_crowdnet/blob/master/dcc_crowdnet.ipynb but
+# much faster version of https://github.com/davideverona/deep-crowd-counting_crowdnet/blob/master/dcc_crowdnet.ipynb
 def gaussian_filter_density(pts, image_shape, k_neighbors=3):
     k_neighbors = k_neighbors+1
     density = np.zeros(image_shape, dtype=np.float32)
